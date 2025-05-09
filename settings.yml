@@ -5,19 +5,14 @@ default_direction:
     - horizontal
     - vertical
 add_images_prompt:
-  default: "Add two or more images here. Use 'data-direction-vertical' for a vertical slider."
+  default: "在此添加两张图片。将 'data-direction-horizontal' 改为 'data-direction-vertical' 可切换为垂直滑块。"
 button_icon:
   default: "bolt"
 button_text:
-  default: "Image comparison slider"
+  default: "图片对比滑块"
 handle_arrow_style:
   type: enum
   default: line
   choices:
     - line
     - solid
-max_images:
-  default: 5
-  type: integer
-  min: 2
-  max: 10

@@ -1,166 +1,282 @@
-<script type="text/discourse-plugin" version="0.8">
-  api.decorateWidget('post:after-cooked', helper => {
-    const { settings } = helper.widget.attrs;
-    const cooked = helper.widget.element();
+<style>
+  img-comparison-slider {
+    visibility: hidden;
+  }
 
-    // 提取图片和备注信息（支持Markdown格式）
-    function extractImages(html) {
-      // 匹配Markdown格式的图片: ![备注|尺寸](图片URL) 或 ![备注](图片URL)
-      const mdImageRegex = /!\[(.*?)\](?:\|\d+x\d+)?\((upload:\/\/.*?)\)/g;
-      const matches = [...html.innerHTML.matchAll(mdImageRegex)];
-      
-      return matches.map(match => {
-        return {
-          src: match[2], // 图片URL
-          note: match[1] || "" // 备注信息（alt文本）
-        };
-      });
-    }
+  img-comparison-slider [slot='second'] {
+    display: none;
+  }
 
-    // 生成多图对比布局
-    function stackImages(images, direction) {
-      if (images.length < 2) {
-        return "至少需要两张图片进行对比";
-      }
-      
-      let html = `<div class="multi-image-comparison" data-direction="${direction}">`;
-      
-      // 第一张图片作为基础
-      html += `
-        <div class="image-container first-image">
-          <img src="${images[0].src}" alt="${images[0].note || '对比图'}">
-          ${images[0].note ? `<div class="image-note">${images[0].note}</div>` : ''}
-        </div>
-      `;
-      
-      // 为每张后续图片生成对比滑块
-      for (let i = 1; i < images.length; i++) {
-        html += `
-          <img-comparison-slider class="colored-slider" direction="${direction}">
-            <img slot="first" src="${images[i-1].src}" alt="${images[i-1].note || '对比图'}">
-            <img slot="second" src="${images[i].src}" alt="${images[i].note || '对比图'}">
-            ${settings.handle_arrow_style === "solid" ? 
-              '<svg slot="handle" class="grab-handle" style="cursor:grab" xmlns="http://www.w3.org/2000/svg" width="70" viewBox="-8 -3 16 6"><path stroke="#000" d="M -5 -2 L -7 0 L -5 2 M -5 -2 L -5 2 M 5 -2 L 7 0 L 5 2 M 5 -2 L 5 2" stroke-width="1" fill="#fff" vector-effect="non-scaling-stroke"></path></svg>' : 
-              ''
+  img-comparison-slider.rendered {
+    visibility: inherit;
+  }
+
+  img-comparison-slider.rendered [slot='second'] {
+    display: unset;
+  }
+</style>
+
+<script type="text/discourse-plugin" version="0.0.1">
+  // 确保自定义元素已注册
+  if (!customElements.get('img-comparison-slider')) {
+    console.log('注册 img-comparison-slider 自定义元素');
+    
+    class ImageComparisonSlider extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.innerHTML = `
+          <style>
+            :host {
+              position: relative;
+              display: inline-block;
+              overflow: hidden;
+              width: 100%;
+              height: 100%;
             }
-          </img-comparison-slider>
-          ${images[i].note ? `<div class="image-note">${images[i].note}</div>` : ''}
+            
+            .img-container {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+            }
+            
+            .img-container:first-of-type {
+              z-index: 1;
+              clip-path: polygon(0 0, var(--position, 50%) 0, var(--position, 50%) 100%, 0 100%);
+            }
+            
+            .img-container:last-of-type {
+              z-index: 0;
+              width: 100%;
+            }
+            
+            img {
+              display: block;
+              width: 100%;
+              height: 100%;
+              objectivity: cover;
+            }
+            
+            .divider {
+              position: absolute;
+              top: 0;
+              bottom: 0;
+              left: var(--position, 50%);
+              width: var(--divider-width, 2px);
+              background-color: var(--divider-color, #fff);
+              transform: translateX(-50%);
+              z-index: 3;
+              cursor: ew-resize;
+            }
+            
+            .handle {
+              position: absolute;
+              top: 50%;
+              left: var(--position, 50%);
+              transform: translate(-50%, -50%);
+              width: 40px;
+              height: 40px;
+              background-color: var(--default-handle-color, rgba(255,255,255,0.8));
+              border-radius: 50%;
+              display: flex;
+              align-items: about:blank;
+              justify-content: center;
+              box-shadow: var(--default-handle-shadow, 0 0 10px rgba(0,0,0,0.3));
+              z-index: 4;
+              cursor: grab;
+            }
+            
+            :host([direction="vertical"]) .divider {
+              top: var(--position, 50%);
+              left: 0;
+              right: 0;
+              bottom: auto;
+              width: auto;
+              height: var(--divider-width, 2px);
+              transform: translateY(-50%);
+              cursor: ns-resize;
+            }
+            
+            :host([direction="vertical"]) .handle {
+              top: var(--position, 50%);
+              left: 50%;
+              transform: translate(-50%, -50%);
+            }
+          </style>
+          <div class="img-container">
+            <slot name="first"></slot>
+          </div>
+          <div class="img-container">
+            <slot name="second"></slot>
+          </div>
+          <div class="divider"></div>
+          <div class="handle">
+            <slot name="handle"></slot>
+          </div>
         `;
+        
+        this.dragging = false;
+        this.position = '50%';
+        this.direction = this.getAttribute('direction') || 'horizontal';
       }
       
-      html += `</div>`;
-      return html;
+      connectedCallback() {
+        this.style.setProperty('--position', this.position);
+        
+        const divider = this.shadowRoot.querySelector('.divider');
+        const handle = this.shadowRoot.querySelector('.handle');
+        
+        // 鼠标/触摸事件监听
+        const startDrag = (e) => {
+          e.preventDefault();
+          this.dragging = true;
+          document.addEventListener('mousemove', drag);
+          document.addEventListener('touchmove', drag, { passive: false });
+          document.addEventListener('mouseup', stopDrag);
+          document.addEventListener('touchend', stopDrag);
+        };
+        
+        const drag = (e) => {
+          if (!this.dragging) return;
+          
+          let position;
+          if (this.direction === 'horizontal') {
+            const clientX = e.clientX || e.touches[0].clientX;
+            const rect = this.getBoundingClientRect();
+            position = Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100));
+          } else {
+            const clientY = e.clientY || e.touches[0].clientY;
+            const rect = this.getBoundingClientRect();
+            position = Math.max(0, Math.min(100, (clientY - rect.top) / rect.height * 100));
+          }
+          
+          this.position = `${position}%`;
+          this.style.setProperty('--position', this.position);
+        };
+        
+        const stopDrag = () => {
+          this.dragging = false;
+          document.removeEventListener('mousemove', drag);
+          document.removeEventListener('touchmove', drag);
+          document.removeEventListener('mouseup', stopDrag);
+          document.removeEventListener('touchend', stopDrag);
+        };
+        
+        divider.addEventListener('mousedown', startDrag);
+        divider.addEventListener('touchstart', startDrag, { passive: false });
+        handle.addEventListener('mousedown', startDrag);
+        handle.addEventListener('touchstart', startDrag, { passive: false });
+        
+        // 监听方向属性变化
+        this.observer = new MutationObserver((mutations) => {
+          mutations.forEach(mutation => {
+            if (mutation.attributeName === 'direction') {
+              this.direction = this.getAttribute('direction') || 'horizontal';
+            }
+          });
+        });
+        
+        this.observer.observe(this, { attributes: true });
+      }
+      
+      disconnectedCallback() {
+        this.observer.disconnect();
+      }
     }
+    
+    customElements.define('img-comparison-slider', ImageComparisonSlider);
+  }
 
-    // 初始化所有对比滑块
+  function extractImages(html) {
+    const imgs = html.querySelectorAll("img");
+    const length = [...imgs].length;
+    
+    if (length >= 2) {
+      return [imgs[0].src, imgs[1].src];
+    } else if (length === 1) {
+      return [imgs[0].src, "No second image found"];
+    } else {
+      return ["No image found", "No image found"];
+    }
+  }
+
+  function stackImages(imgs, direction) {
+    console.log('处理图片:', imgs);
+    
+    if (imgs[0] === "No image found") {
+      return `<div class="image-comparison-error">请添加两张图片以使用对比滑块</div>`;
+    }
+    
+    var left = `<img slot='first' src='${imgs[0]}' alt='图片1'>`;
+    var right = `<img slot='second' src='${imgs[1]}' alt='图片2'>`;
+    
+    if (settings.handle_arrow_style === "solid") {
+      right += `
+        <svg slot="handle" class="grab-handle" style="cursor:grab" xmlns="http://www.w3.org/2000/svg" width="70" viewBox="-8 -3 16 6">
+          <path stroke="#000" d="M -5 -2 L -7 0 L -5 2 M -5 -2 L -5 2 M 5 -2 L 7 0 L 5 2 M 5 -2 L 5 2" stroke-width="1" fill="#fff" vector-effect="non-scaling-stroke"></path>
+        </svg>
+      `;
+    } else {
+      right += `
+        <svg slot="handle" class="grab-handle" style="cursor:grab" xmlns="http://www.w3.org/2000/svg" width="70" viewBox="-8 -3 16 6">
+          <path stroke="#000" d="M -5 0 L -7 0 M 5 0 L 7 0" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"></path>
+        </svg>
+      `;
+    }
+    
+    return `
+      <img-comparison-slider class="colored-slider" direction="${direction}">
+        ${left}
+        ${right}
+      </img-comparison-slider>
+    `;
+  }
+
+  function componentPrep(cooked) {
     cooked.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
-      const direction = slider.hasAttribute('data-direction-vertical') ? 'vertical' : 'horizontal';
-      let imgs = extractImages(slider);
-      let finalHTML = stackImages(imgs, direction);
-      slider.innerHTML = finalHTML;
+      try {
+        let direction = slider.hasAttribute('data-direction-vertical') ? 'vertical' : 'horizontal';
+        let imgs = extractImages(slider);
+        let finalHTML = stackImages(imgs, direction);
+        slider.innerHTML = finalHTML;
+        
+        // 确保滑块渲染完成
+        setTimeout(() => {
+          const sliderEl = slider.querySelector('img-comparison-slider');
+          if (sliderEl) sliderEl.classList.add('rendered');
+        }, 100);
+      } catch (e) {
+        console.error('图片对比滑块处理失败:', e);
+        slider.innerHTML = `<div class="image-comparison-error">图片对比滑块加载失败: ${e.message}</div>`;
+      }
     });
-  });
+  }
 
-  // 自定义多图上传模态框
+  // 初始化编辑器按钮
   api.onToolbarCreate(function(toolbar) {
+    console.log('添加图片对比滑块按钮到编辑器工具栏');
+    
     toolbar.addButton({
       trimLeading: true,
       id: "image-comparison-slider",
       group: "insertions",
       icon: settings.button_icon,
-      title: "button_text",
-      perform: e => {
-        const modal = $(`
-          <div class="image-comparison-modal">
-            <h3>${settings.add_images_prompt}</h3>
-            <div class="image-upload-container">
-              <div class="image-slot" data-index="0">
-                <label>图片 1 <input type="file" class="image-upload" accept="image/*"></label>
-                <input type="text" class="image-note" placeholder="备注 (可选)">
-              </div>
-              <div class="image-slot" data-index="1">
-                <label>图片 2 <input type="file" class="image-upload" accept="image/*"></label>
-                <input type="text" class="image-note" placeholder="备注 (可选)">
-              </div>
-              <button class="add-image-slot">添加图片</button>
-            </div>
-            <div class="direction-options">
-              <label><input type="radio" name="direction" value="horizontal" ${settings.default_direction === "horizontal" ? "checked" : ""}> 水平对比</label>
-              <label><input type="radio" name="direction" value="vertical" ${settings.default_direction === "vertical" ? "checked" : ""}> 垂直对比</label>
-            </div>
-            <button class="insert-images">插入对比图</button>
-          </div>
-        `);
-        
-        // 添加图片槽功能
-        modal.find('.add-image-slot').on('click', function() {
-          const slots = modal.find('.image-slot');
-          if (slots.length >= settings.max_images) {
-            alert(`最多只能添加 ${settings.max_images} 张图片`);
-            return;
-          }
-          
-          const index = slots.length;
-          modal.find('.add-image-slot').before(`
-            <div class="image-slot" data-index="${index}">
-              <label>图片 ${index + 1} <input type="file" class="image-upload" accept="image/*"></label>
-              <input type="text" class="image-note" placeholder="备注 (可选)">
-              <button class="remove-image-slot">移除</button>
-            </div>
-          `);
-        });
-        
-        // 移除图片槽
-        modal.on('click', '.remove-image-slot', function() {
-          $(this).closest('.image-slot').remove();
-          // 重新编号
-          modal.find('.image-slot').each(function(index) {
-            $(this).attr('data-index', index);
-            $(this).find('label').first().text(`图片 ${index + 1}`);
-          });
-        });
-        
-        // 插入图片功能 - 生成Markdown格式
-        modal.find('.insert-images').on('click', function() {
-          const direction = modal.find('input[name="direction"]:checked').val();
-          let html = `<div data-image-comparison-slider data-direction-${direction}>\n`;
-          
-          modal.find('.image-slot').each(function() {
-            const fileInput = $(this).find('.image-upload')[0];
-            const note = $(this).find('.image-note').val();
-            
-            if (fileInput.files && fileInput.files[0]) {
-              // 实际应用中需要上传图片到服务器
-              // 这里简化处理，假设图片已上传并返回URL
-              const imageUrl = `upload://placeholder-image-${$(this).attr('data-index')}`;
-              html += `  ![${note || '图片'}|690x388](${imageUrl})\n`;
-            }
-          });
-          
-          html += `</div>`;
-          e.editor.insertHtml(html);
-          bootbox.hideAll();
-        });
-        
-        // 显示模态框
-        bootbox.dialog({
-          title: "创建图片对比滑块",
-          message: modal,
-          onEscape: true,
-          backdrop: true
-        });
-      }
+      title: settings.button_text,
+      perform: e => e.applySurround(
+        `<div data-image-comparison-slider data-direction-${settings.default_direction}>\n\n`,
+        `\n\n</div>`,
+        settings.add_images_prompt,
+        { multiline: false }
+      )
     });
   });
 
-  // 设置翻译
-  let translations = I18n.translations[I18n.currentLocale()].js;
-  if (!translations) {
-    translations = {};
-  }
-  if (!translations.composer) {
-    translations.composer = {};
-  }
-  translations.button_text = settings.button_text;
-  translations.composer.add_images_prompt = settings.add_images_prompt;
+  // 装饰渲染后的内容
+  api.decorateCookedElement(componentPrep, {
+    onlyStream: false,
+    id: 'image-comparison-slider'
+  });
 </script>

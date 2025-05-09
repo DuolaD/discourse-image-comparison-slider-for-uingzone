@@ -6,3 +6,4 @@ en:
       button_text: Choose the tooltip text for the button in the composer.
       add_images_prompt: Choose the placeholder text that appears in the composer upon button click. 
       handle_arrow_style: Choose the style of the < > icons around the draggable handle
+      max_images: Maximum number of images allowed in a comparison slider

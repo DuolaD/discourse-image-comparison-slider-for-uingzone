@@ -394,18 +394,39 @@
       window.imgIndex1++;
       window.imgIndex2++;
     }
-      console.log("🚀 ~ window.imgIndex1:", window.imgIndex1)
-      console.log("🚀 ~ window.imgIndex2:", window.imgIndex2)
+      // console.log("🚀 ~ window.imgIndex1:", window.imgIndex1)
+      // console.log("🚀 ~ window.imgIndex2:", window.imgIndex2)
 
     // 重新渲染图片比较滑块
     document.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
-      let imgs = extractImages(slider);
-      let finalHTML = stackImages(imgs, settings.default_direction);
+      let {imgs,hidenImgHTML} = extractImages(slider);
+      let finalHTML = stackImages(imgs, settings.default_direction,hidenImgHTML);
       slider.innerHTML = finalHTML;
     });
   }
 
   function extractImages(html){
+    // console.log("🚀 ~ extractImages ~ html:", html)
+    // console.log("🚀 ~ extractImages ~ imgs:", imgs)
+    // TODO 创建被隐藏的图片dom
+    // let hidenImgHTML = ''
+    // if(!html.querySelector(".hiden-img")){
+    //   const imgs = html.querySelectorAll("img");
+    //   imgs.forEach(img => {
+    //     hidenImgHTML = hidenImgHTML + '<img class="hiden-img" style="display: none;" src="'+img.src+'"/>'
+    //   });
+    // } else {
+    //   const imgs = html.querySelectorAll(".hiden-img");
+    // }
+    // var length = [...imgs].length;
+    // if (length > 0){
+    //   return {imgs:[imgs[window.imgIndex1 || 0].src, imgs[window.imgIndex2 || 1].src],hidenImgHTML};
+    //   if(hidenImgHTML!='' && !html.querySelector(".hiden-img")){
+    //     html.innerHTML = html.innerHTML + hidenImgHTML;
+    //   }
+    // } else {
+    //   return {imgs:["No image found", "No image found"],hidenImgHTML:''};
+    // }
     console.log("🚀 ~ extractImages ~ html:", html)
     const imgs = html.querySelectorAll("img");
     console.log("🚀 ~ extractImages ~ imgs:", imgs)
@@ -418,8 +439,8 @@
   }
 
   function stackImages(imgs, d){
-    console.log("🚀 ~ stackImages ~ stackImages执行了")
-    console.log("🚀 ~ stackImages ~ imgs:", imgs)
+    // console.log("🚀 ~ stackImages ~ stackImages执行了")
+    // console.log("🚀 ~ stackImages ~ imgs:", imgs)
     var left = ["<img slot='first' src='", imgs[0], "'/>"].join('');
     var right = ["<img slot='second' src='", imgs[1], "'/>"].join('');
     var direction = d;

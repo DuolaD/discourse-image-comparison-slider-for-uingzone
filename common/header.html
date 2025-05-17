@@ -102,6 +102,7 @@
       });
       
     function handleButtonClick(imgIndex1, imgIndex2) {
+      console.log("🚀 ~ handleButtonClick ~ imgIndex1, imgIndex2:", imgIndex1, imgIndex2)
       // 获取当前页面所有图片
       const allImages = document.querySelectorAll("img");
       const maxIndex = allImages.length - 1;
@@ -135,6 +136,7 @@
       // 重新渲染图片比较滑块
       document.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
         let imgs = extractImages(slider);
+        console.log("🚀 ~ document.querySelectorAll ~ imgs:", imgs)
         let finalHTML = stackImages(imgs, settings.default_direction);
         slider.innerHTML = finalHTML;
       });

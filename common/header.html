@@ -400,7 +400,6 @@
     // 重新渲染图片比较滑块
     document.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
       let imgs = extractImages(slider);
-      console.log("🚀 ~ document.querySelectorAll ~ imgs:", imgs)
       let finalHTML = stackImages(imgs, settings.default_direction);
       slider.innerHTML = finalHTML;
     });
@@ -408,6 +407,7 @@
 
   function extractImages(html){
     const imgs = html.querySelectorAll("img");
+    console.log("🚀 ~ extractImages ~ imgs:", imgs)
     var length = [...imgs].length;
     if (length > 0){
       return [imgs[window.imgIndex1 || 0].src, imgs[window.imgIndex2 || 1].src];
@@ -417,8 +417,6 @@
   }
 
   function stackImages(imgs, d){
-    console.log("🚀 ~ stackImages ~ imgs:", imgs)
-    console.log("🚀 ~ stackImages ~ index1and2:", window.imgIndex1+'and'+window.imgIndex2)
     console.log(imgs[0]);
     var left = ["<img slot='first' src='", imgs[0], "'/>"].join('');
     var right = ["<img slot='second' src='", imgs[1], "'/>"].join('');

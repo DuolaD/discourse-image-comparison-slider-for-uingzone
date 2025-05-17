@@ -4,98 +4,139 @@
 
 <style>
   img-comparison-slider {
-  visibility: hidden;
-}
+    visibility: hidden;
+  }
 
-img-comparison-slider [slot='second'] {
-  display: none;
-}
+  img-comparison-slider [slot='second'] {
+    display: none;
+  }
 
-img-comparison-slider.rendered {
-  visibility: inherit;
-}
+  img-comparison-slider.rendered {
+    visibility: inherit;
+  }
 
-img-comparison-slider.rendered [slot='second'] {
-  display: unset;
-}
+  img-comparison-slider.rendered [slot='second'] {
+    display: unset;
+  }
 </style>
 <script type="text/discourse-plugin" version="0.0.1">
 
   function extractImages(html){
-  const imgs = html.querySelectorAll("img");
-  var length = [...imgs].length;
-  if (length > 0){
-    return [imgs[0].src, imgs[1].src];
-  } else {
-    return ["No image found", "No image found"]
-  }
-}
-
-function stackImages(imgs, d){
-  console.log(imgs[0]);
-  var left = ["<img slot='first' src='", imgs[0], "'/>"].join('');
-  var right = ["<img slot='second' src='", imgs[1], "'/>"].join('');
-  var direction = d;
-  if (settings.handle_arrow_style == "solid"){
-    right = right + '<svg slot="handle" class = "grab-handle" style = "cursor:grab" xmlns="http://www.w3.org/2000/svg" width="70" viewBox="-8 -3 16 6"><path stroke="#000" d="M -5 -2 L -7 0 L -5 2 M -5 -2 L -5 2 M 5 -2 L 7 0 L 5 2 M 5 -2 L 5 2" stroke-width="1" fill="#fff" vector-effect="non-scaling-stroke"></path></svg>'
-  }
-  return ["<img-comparison-slider class = 'colored-slider' direction = '", direction,"'>", left, right, "</img-comparison-slider>"].join('')
-}
-
-
-  function componentPrep(cooked)
-  {
-    cooked.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
-      let imgs = extractImages(slider);
-      let finalHTML = stackImages(imgs, settings.default_direction);
-      slider.innerHTML = finalHTML;
-    })
-    cooked.querySelectorAll('div[data-image-comparison-slider][data-direction-horizontal]').forEach(slider => {
-      let imgs = extractImages(slider);
-      let finalHTML = stackImages(imgs, "horizontal");
-      slider.innerHTML = finalHTML;
-    })
-    cooked.querySelectorAll('div[data-image-comparison-slider][data-direction-vertical]').forEach(slider => {
-      let imgs = extractImages(slider);
-      let finalHTML = stackImages(imgs, "vertical");
-      slider.innerHTML = finalHTML;
-    })
-    
-  }
-
-
-    let translations = I18n.translations[I18n.currentLocale()].js;
-
-    if (!translations) {
-      translations = {};
+    const imgs = html.querySelectorAll("img");
+    var length = [...imgs].length;
+    if (length > 0){
+      return [imgs[window.imgIndex1 || 0].src, imgs[window.imgIndex2 || 1].src];
+    } else {
+      return ["No image found", "No image found"]
     }
-    if (!translations.composer) {
-      translations.composer = {};
+  }
+
+  function stackImages(imgs, d){
+    console.log(imgs[0]);
+    var left = ["<img slot='first' src='", imgs[0], "'/>"].join('');
+    var right = ["<img slot='second' src='", imgs[1], "'/>"].join('');
+    var direction = d;
+    if (settings.handle_arrow_style == "solid"){
+      right = right + '<svg slot="handle" class = "grab-handle" style = "cursor:grab" xmlns="http://www.w3.org/2000/svg" width="70" viewBox="-8 -3 16 6"><path stroke="#000" d="M -5 -2 L -7 0 L -5 2 M -5 -2 L -5 2 M 5 -2 L 7 0 L 5 2 M 5 -2 L 5 2" stroke-width="1" fill="#fff" vector-effect="non-scaling-stroke"></path></svg>'
     }
-    translations.button_text = settings.button_text;
-    translations.composer.add_images_prompt =
-      settings.add_images_prompt;
+    return ["<img-comparison-slider class = 'colored-slider' direction = '", direction,"'>", left, right, "</img-comparison-slider>"].join('')
+  }
 
 
-    api.decorateCookedElement(componentPrep, {
-        onlyStream: false, 
-        id: 'image-comparison-slider'
-      });
+    function componentPrep(cooked)
+    {
+      cooked.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
+        let imgs = extractImages(slider);
+        let finalHTML = stackImages(imgs, settings.default_direction);
+        slider.innerHTML = finalHTML;
+      })
+      cooked.querySelectorAll('div[data-image-comparison-slider][data-direction-horizontal]').forEach(slider => {
+        let imgs = extractImages(slider);
+        let finalHTML = stackImages(imgs, "horizontal");
+        slider.innerHTML = finalHTML;
+      })
+      cooked.querySelectorAll('div[data-image-comparison-slider][data-direction-vertical]').forEach(slider => {
+        let imgs = extractImages(slider);
+        let finalHTML = stackImages(imgs, "vertical");
+        slider.innerHTML = finalHTML;
+      })
+      
+    }
 
 
-    api.onToolbarCreate(function(toolbar){
-        toolbar.addButton({
-            trimLeading: true,
-            id: "image-comparison-slider",
-            group: "insertions",
-            icon: settings.button_icon,
-            title: "button_text",
-            perform: e => e.applySurround(
-                ["<div data-image-comparison-slider data-direction-",settings.default_direction,">\n\n"].join(''),
-                "\n\n</div>",
-                "add_images_prompt",
-                { multiline: false }
-            )
+      let translations = I18n.translations[I18n.currentLocale()].js;
+
+      if (!translations) {
+        translations = {};
+      }
+      if (!translations.composer) {
+        translations.composer = {};
+      }
+      translations.button_text = settings.button_text;
+      translations.composer.add_images_prompt =
+        settings.add_images_prompt;
+
+
+      api.decorateCookedElement(componentPrep, {
+          onlyStream: false, 
+          id: 'image-comparison-slider'
         });
-    });
+
+
+      api.onToolbarCreate(function(toolbar){
+          toolbar.addButton({
+              trimLeading: true,
+              id: "image-comparison-slider",
+              group: "insertions",
+              icon: settings.button_icon,
+              title: "button_text",
+              perform: e => {
+                  e.applySurround(                      
+                  "<button class='btn btn-primary' onclick='handleButtonClick(1,2)'>Change Image</button>\n\n"+["<div data-image-comparison-slider data-direction-",settings.default_direction,">\n"].join(''),
+                      "\n\n</div>",
+                      "add_images_prompt",
+                      { multiline: false }
+                  );
+              }
+          });
+      });
+      
+    function handleButtonClick(imgIndex1, imgIndex2) {
+      // 获取当前页面所有图片
+      const allImages = document.querySelectorAll("img");
+      const maxIndex = allImages.length - 1;
+
+      // 验证索引值
+      if (typeof imgIndex1 !== 'number' || typeof imgIndex2 !== 'number') {
+        console.error('图片索引必须是数字');
+        return;
+      }
+
+      if (imgIndex1 < 0 || imgIndex2 < 0) {
+        console.error('图片索引不能为负数');
+        return;
+      }
+
+      if (imgIndex1 > maxIndex || imgIndex2 > maxIndex) {
+        console.error(`图片索引超出范围，最大索引为 ${maxIndex}`);
+        return;
+      }
+
+      if (imgIndex1 === imgIndex2) {
+        console.error('两个图片索引不能相同');
+        return;
+      }
+
+      // 索引验证通过，更新全局变量
+      window.imgIndex1 = imgIndex1;
+      window.imgIndex2 = imgIndex2;
+      console.log('按钮被点击，图片索引已更新:', imgIndex1, imgIndex2);
+      
+      // 重新渲染图片比较滑块
+      document.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
+        let imgs = extractImages(slider);
+        let finalHTML = stackImages(imgs, settings.default_direction);
+        slider.innerHTML = finalHTML;
+      });
+    }
 </script>

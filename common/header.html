@@ -256,6 +256,7 @@
         connectedCallback() {
           this.hasAttribute("tabindex") || (this.tabIndex = 0);
           this.addEventListener("dragstart", (t => (t.preventDefault(), !1)));
+          this.addEventListener("dblclick", this.onMouseDoubleClick);
           new ResizeObserver(this.resetDimensions).observe(this);
           this.setExposure(0);
           this.keyboard = this.hasAttribute("keyboard") && "disabled" === this.getAttribute("keyboard") ? "disabled" : "enabled";

@@ -21,6 +21,48 @@
 </style>
 <script type="text/discourse-plugin" version="0.0.1">
 
+  // 将函数定义在window对象上，使其全局可访问
+  window.handleButtonClick = function(imgIndex1, imgIndex2) {
+    console.log("🚀 ~ imgIndex1, imgIndex2:", imgIndex1, imgIndex2)
+    // 获取当前页面所有图片
+    const allImages = document.querySelectorAll("img");
+    const maxIndex = allImages.length - 1;
+
+    // 验证索引值
+    if (typeof imgIndex1 !== 'number' || typeof imgIndex2 !== 'number') {
+      console.error('图片索引必须是数字');
+      return;
+    }
+
+    if (imgIndex1 < 0 || imgIndex2 < 0) {
+      console.error('图片索引不能为负数');
+      return;
+    }
+
+    if (imgIndex1 > maxIndex || imgIndex2 > maxIndex) {
+      console.error(`图片索引超出范围，最大索引为 ${maxIndex}`);
+      return;
+    }
+
+    if (imgIndex1 === imgIndex2) {
+      console.error('两个图片索引不能相同');
+      return;
+    }
+
+    // 索引验证通过，更新全局变量
+    window.imgIndex1 = imgIndex1;
+    window.imgIndex2 = imgIndex2;
+    console.log('按钮被点击，图片索引已更新:', imgIndex1, imgIndex2);
+    
+    // 重新渲染图片比较滑块
+    document.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
+      let imgs = extractImages(slider);
+      console.log("🚀 ~ document.querySelectorAll ~ imgs:", imgs)
+      let finalHTML = stackImages(imgs, settings.default_direction);
+      slider.innerHTML = finalHTML;
+    });
+  }
+
   function extractImages(html){
     const imgs = html.querySelectorAll("img");
     var length = [...imgs].length;
@@ -92,7 +134,7 @@
               title: "button_text",
               perform: e => {
                   e.applySurround(                      
-                  "<button class='btn btn-primary' onclick='handleButtonClick(1,2)'>Change Image</button>\n\n"+["<div data-image-comparison-slider data-direction-",settings.default_direction,">\n"].join(''),
+                  "<button onclick='handleButtonClick(0,1)'>Change Image</button>\n\n"+["<div data-image-comparison-slider data-direction-",settings.default_direction,">\n"].join(''),
                       "\n\n</div>",
                       "add_images_prompt",
                       { multiline: false }
@@ -100,45 +142,4 @@
               }
           });
       });
-      
-    function handleButtonClick(imgIndex1, imgIndex2) {
-      console.log("🚀 ~ handleButtonClick ~ imgIndex1, imgIndex2:", imgIndex1, imgIndex2)
-      // 获取当前页面所有图片
-      const allImages = document.querySelectorAll("img");
-      const maxIndex = allImages.length - 1;
-
-      // 验证索引值
-      if (typeof imgIndex1 !== 'number' || typeof imgIndex2 !== 'number') {
-        console.error('图片索引必须是数字');
-        return;
-      }
-
-      if (imgIndex1 < 0 || imgIndex2 < 0) {
-        console.error('图片索引不能为负数');
-        return;
-      }
-
-      if (imgIndex1 > maxIndex || imgIndex2 > maxIndex) {
-        console.error(`图片索引超出范围，最大索引为 ${maxIndex}`);
-        return;
-      }
-
-      if (imgIndex1 === imgIndex2) {
-        console.error('两个图片索引不能相同');
-        return;
-      }
-
-      // 索引验证通过，更新全局变量
-      window.imgIndex1 = imgIndex1;
-      window.imgIndex2 = imgIndex2;
-      console.log('按钮被点击，图片索引已更新:', imgIndex1, imgIndex2);
-      
-      // 重新渲染图片比较滑块
-      document.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
-        let imgs = extractImages(slider);
-        console.log("🚀 ~ document.querySelectorAll ~ imgs:", imgs)
-        let finalHTML = stackImages(imgs, settings.default_direction);
-        slider.innerHTML = finalHTML;
-      });
-    }
 </script>

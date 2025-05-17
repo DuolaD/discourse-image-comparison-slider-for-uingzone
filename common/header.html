@@ -106,7 +106,7 @@
           this.handle = !1;
           window.imgIndex1 = 0;
           window.imgIndex2 = 1;
-          
+
           // 鼠标双击事件
           this.onMouseDoubleClick = t => {
             console.log('鼠标双击事件')
@@ -388,7 +388,7 @@
   window.changeImageIndex = function() {
     console.log('按钮被点击，图片索引已更新:', window.imgIndex1, window.imgIndex2);
     // 索引验证通过，更新全局变量
-    if(window.imgIndex2 <= 2 ){
+    if(window.imgIndex2 > 1 ){
       window.imgIndex1 = 0;
       window.imgIndex2 = 1;
     } else {

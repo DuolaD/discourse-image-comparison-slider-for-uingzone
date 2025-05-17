@@ -287,8 +287,39 @@
             // 设置曝光度
             setExposure(t = 0) {
                 var e;
+                const oldExposure = this.exposure;
                 this.exposure = (100, (e = this.exposure + t) < 0 ? 0 : e > 100 ? 100 : e);
-                this.firstElement.style.setProperty("--exposure", 100 - this.exposure + "%")
+                this.firstElement.style.setProperty("--exposure", 100 - this.exposure + "%");
+
+                // 当曝光度从非0变为0时，减少索引
+                if (oldExposure !== 0 && this.exposure === 0) {
+                    const allImages = document.querySelectorAll("img");
+                    const maxIndex = allImages.length - 1;
+                    
+                    // 确保索引不会小于0
+                    const newIndex1 = Math.max(0, (window.imgIndex1 || 0) - 1);
+                    const newIndex2 = Math.max(0, (window.imgIndex2 || 1) - 1);
+                    
+                    // 确保两个索引不相同
+                    if (newIndex1 !== newIndex2) {
+                        window.changeImageIndex(newIndex1, newIndex2);
+                    }
+                }
+                
+                // 当曝光度从非100变为100时，增加索引
+                if (oldExposure !== 100 && this.exposure === 100) {
+                    const allImages = document.querySelectorAll("img");
+                    const maxIndex = allImages.length - 1;
+                    
+                    // 确保索引不会超过最大值
+                    const newIndex1 = Math.min(maxIndex, (window.imgIndex1 || 0) + 1);
+                    const newIndex2 = Math.min(maxIndex, (window.imgIndex2 || 1) + 1);
+                    
+                    // 确保两个索引不相同
+                    if (newIndex1 !== newIndex2) {
+                        window.changeImageIndex(newIndex1, newIndex2);
+                    }
+                }
             }
 
             // 滑动
@@ -375,7 +406,7 @@
 <script type="text/discourse-plugin" version="0.0.1">
 
   // 将函数定义在window对象上，使其全局可访问
-  window.handleButtonClick = function(imgIndex1, imgIndex2) {
+  window.changeImageIndex = function(imgIndex1, imgIndex2) {
     console.log("🚀 ~ imgIndex1, imgIndex2:", imgIndex1, imgIndex2)
     // 获取当前页面所有图片
     const allImages = document.querySelectorAll("img");
@@ -488,7 +519,7 @@
               title: "button_text",
               perform: e => {
                   e.applySurround(                      
-                  "<button onclick='handleButtonClick(0,1)'>Change Image</button>\n\n"+["<div data-image-comparison-slider data-direction-",settings.default_direction,">\n"].join(''),
+                  "<button onclick='changeImageIndex(0,1)'>Change Image</button>\n\n"+["<div data-image-comparison-slider data-direction-",settings.default_direction,">\n"].join(''),
                       "\n\n</div>",
                       "add_images_prompt",
                       { multiline: false }

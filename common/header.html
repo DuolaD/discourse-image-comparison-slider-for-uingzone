@@ -406,6 +406,7 @@
   }
 
   function extractImages(html){
+    console.log("🚀 ~ extractImages ~ html:", html)
     const imgs = html.querySelectorAll("img");
     console.log("🚀 ~ extractImages ~ imgs:", imgs)
     var length = [...imgs].length;

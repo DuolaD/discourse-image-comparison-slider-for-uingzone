@@ -444,7 +444,11 @@
     console.log("🚀 ~ extractImages ~ imgs:", imgs)
     var length = [...imgs].length;
     if (length > 0) {
-      return imgs.map(i => i.src);
+      let imgsSrcList = []
+      imgs.forEach(i => {
+        imgsSrcList.push(i.src)
+      })
+      return imgsSrcList;
     }
     else {
       return ["No image found", "No image found"]

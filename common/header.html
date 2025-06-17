@@ -383,7 +383,7 @@
   }
 </style>
 <!-- <script version="0.0.1"> -->
-<script type="text/discourse-plugin" version="0.0.1">
+  <script type="text/discourse-plugin" version="0.0.1">
 
   // 将函数定义在window对象上，使其全局可访问
   window.changeImageIndex = function () {
@@ -399,6 +399,7 @@
     // console.log("🚀 ~ window.imgIndex2:", window.imgIndex2)
 
     // 重新渲染图片比较滑块
+    // TODO 目前一个页面中只能有一个图片比较滑块
     document.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
       let { imgs, hidenImgHTML } = extractImages(slider);
       let finalHTML = stackImages(imgs, settings.default_direction, hidenImgHTML);
@@ -430,12 +431,25 @@
     // }
     console.log("🚀 ~ extractImages ~ html.innerHTML:", html.innerHTML)
     console.log("🚀 ~ extractImages ~ html:", html)
-    const imgs = html.querySelectorAll("img");
+
+    const imgs = []
+    if (html.querySelector(".all-imgs-container")) {
+      imgs = html.querySelectorAll(".all-imgs-container img");
+    } else {
+      imgs = html.querySelectorAll("img");
+    }
+    if (imgs.length == 0) {
+      return ["No image found", "No image found"]
+    }
     console.log("🚀 ~ extractImages ~ imgs:", imgs)
     var length = [...imgs].length;
-    if (length > 0) {
+    if (length > 0 && imgs.length <= 2) {
       return [imgs[window.imgIndex1 || 0].src, imgs[window.imgIndex2 || 1].src];
-    } else {
+    }
+    else if (length > 0 && imgs.length > 2) {
+      return [imgs[window.imgIndex1 || 0].src, imgs[window.imgIndex2 || 1].src, ...imgs.slice(2).map(img => img.src)];
+    }
+    else {
       return ["No image found", "No image found"]
     }
   }
@@ -456,7 +470,7 @@
       otherImg.forEach(img => {
         otherImgHTMLText = otherImgHTMLText + ["<img src='", img, "'/>"].join('');
       });
-      otherImgContaier = ["<div style='display: none;'>", otherImgHTMLText, "</div>"].join('');
+      otherImgContaier = ["<div class='all-imgs-container' style='display: none;'>", otherImgHTMLText, "</div>"].join('');
       console.log("🚀 ~ stackImages ~ otherImgContaier:", otherImgContaier)
     }
     var direction = d;

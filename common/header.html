@@ -383,7 +383,7 @@
   }
 </style>
 <!-- <script version="0.0.1"> -->
-  <script type="text/discourse-plugin" version="0.0.1">
+<script type="text/discourse-plugin" version="0.0.1">
 
   // 将函数定义在window对象上，使其全局可访问
   window.changeImageIndex = function () {
@@ -443,11 +443,8 @@
     }
     console.log("🚀 ~ extractImages ~ imgs:", imgs)
     var length = [...imgs].length;
-    if (length > 0 && imgs.length <= 2) {
-      return [imgs[window.imgIndex1 || 0].src, imgs[window.imgIndex2 || 1].src];
-    }
-    else if (length > 0 && imgs.length > 2) {
-      return [imgs[window.imgIndex1 || 0].src, imgs[window.imgIndex2 || 1].src, ...imgs.slice(2).map(img => img.src)];
+    if (length > 0) {
+      return imgs.map(i => i.src);
     }
     else {
       return ["No image found", "No image found"]

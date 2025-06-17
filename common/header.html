@@ -382,8 +382,8 @@
     display: unset;
   }
 </style>
-<!-- <script version="0.0.1"> -->
-<script type="text/discourse-plugin" version="0.0.1">
+<!-- <script type="text/discourse-plugin" version="0.0.1"> -->
+<script version="0.0.1">
 
   // 将函数定义在window对象上，使其全局可访问
   window.changeImageIndex = function () {
@@ -428,6 +428,7 @@
     // } else {
     //   return {imgs:["No image found", "No image found"],hidenImgHTML:''};
     // }
+    console.log("🚀 ~ extractImages ~ html.innerHTML:", html.innerHTML)
     console.log("🚀 ~ extractImages ~ html:", html)
     const imgs = html.querySelectorAll("img");
     console.log("🚀 ~ extractImages ~ imgs:", imgs)

@@ -441,8 +441,8 @@
   }
 
   function stackImages(imgs, d) {
-    // console.log("🚀 ~ stackImages ~ stackImages执行了")
-    // console.log("🚀 ~ stackImages ~ imgs:", imgs)
+    console.log("🚀 ~ stackImages ~ stackImages执行了")
+    console.log("🚀 ~ stackImages ~ imgs:", imgs)
     var left = ["<img slot='first' src='", imgs[0], "'/>"].join('');
     var right = ["<img slot='second' src='", imgs[1], "'/>"].join('');
 
@@ -473,6 +473,7 @@
 
   function componentPrep(cooked) {
     cooked.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
+      console.log("🚀 ~ cooked.querySelectorAll ~ slider:", slider)
       let imgs = extractImages(slider);
       let finalHTML = stackImages(imgs, settings.default_direction);
       slider.innerHTML = finalHTML;

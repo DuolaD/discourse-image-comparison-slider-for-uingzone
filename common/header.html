@@ -432,7 +432,7 @@
     console.log("🚀 ~ extractImages ~ html.innerHTML:", html.innerHTML)
     console.log("🚀 ~ extractImages ~ html:", html)
 
-    const imgs = []
+    let imgs = []
     if (html.querySelector(".all-imgs-container")) {
       imgs = html.querySelectorAll(".all-imgs-container img");
     } else {

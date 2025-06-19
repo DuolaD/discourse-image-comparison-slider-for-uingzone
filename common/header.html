@@ -541,8 +541,12 @@
   function stackImages(imgs, d) {
     console.log("🚀 ~ stackImages ~ stackImages执行了")
     console.log("🚀 ~ stackImages ~ imgs:", imgs)
-    var left = ["<img slot='first' src='", imgs[0], "'/>"].join('');
-    var right = ["<img slot='second' src='", imgs[1], "'/>"].join('');
+    if(window.imgIndex1 == undefined){
+      window.imgIndex1 = 0;
+      window.imgIndex2 = 1;
+    }
+    var left = ["<img slot='first' src='", imgs[window.imgIndex1], "'/>"].join('');
+    var right = ["<img slot='second' src='", imgs[window.imgIndex2], "'/>"].join('');
 
     // 剩余图片的容器
     var otherImgContaier = "";

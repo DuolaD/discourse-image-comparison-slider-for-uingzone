@@ -468,21 +468,20 @@
 <!-- <script version="0.0.1"> -->
 <script type="text/discourse-plugin" version="0.0.1">
 
+  let allImgLength = 0;
+
   // 将函数定义在window对象上，使其全局可访问
   window.changeImageIndex = function () {
     // 索引验证通过，更新全局变量
-    if (window.imgIndex2 > 1) {
+    if (window.imgIndex2 >= allImgLength) {
       window.imgIndex1 = 0;
       window.imgIndex2 = 1;
     } else {
       window.imgIndex1++;
       window.imgIndex2++;
     }
-    console.log("🚀 ~ window.imgIndex1:", window.imgIndex1)
-    console.log("🚀 ~ window.imgIndex2:", window.imgIndex2)
-
     // 重新渲染图片比较滑块
-    // TODO 目前一个页面中只能有一个图片比较滑块
+    // TODO 目前一个页面中只能有一个图片比较滑块，后续需要优化
     document.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
       let imgs = extractImages(slider);
       let finalHTML = stackImages(imgs, settings.default_direction);
@@ -490,32 +489,8 @@
     });
   }
 
-  function extractImages(html) {
-    // console.log("🚀 ~ extractImages ~ html:", html)
-    // console.log("🚀 ~ extractImages ~ imgs:", imgs)
-    // TODO 创建被隐藏的图片dom
-    // let hidenImgHTML = ''
-    // if(!html.querySelector(".hiden-img")){
-    //   const imgs = html.querySelectorAll("img");
-    //   imgs.forEach(img => {
-    //     hidenImgHTML = hidenImgHTML + '<img class="hiden-img" style="display: none;" src="'+img.src+'"/>'
-    //   });
-    // } else {
-    //   const imgs = html.querySelectorAll(".hiden-img");
-    // }
-    // var length = [...imgs].length;
-    // if (length > 0){
-    //   return {imgs:[imgs[window.imgIndex1 || 0].src, imgs[window.imgIndex2 || 1].src],hidenImgHTML};
-    //   if(hidenImgHTML!='' && !html.querySelector(".hiden-img")){
-    //     html.innerHTML = html.innerHTML + hidenImgHTML;
-    //   }
-    // } else {
-    //   return {imgs:["No image found", "No image found"],hidenImgHTML:''};
-    // }
-    console.log("🚀 ~ extractImages ~ html.innerHTML:", html.innerHTML)
-    console.log("🚀 ~ extractImages ~ html:", html)
-
-    let imgs = []
+  // 提取页面中的图片地址，返回图片src数组
+  function extractImages(html) {]
     if (html.querySelector(".all-imgs-container")) {
       imgs = html.querySelectorAll(".all-imgs-container img");
     } else {
@@ -524,8 +499,7 @@
     if (imgs.length == 0) {
       return ["No image found", "No image found"]
     }
-    console.log("🚀 ~ extractImages ~ imgs:", imgs)
-    var length = [...imgs].length;
+    allImgLength = [...imgs].length;
     if (length > 0) {
       let imgsSrcList = []
       imgs.forEach(i => {
@@ -538,9 +512,8 @@
     }
   }
 
+  // 根据图片数组和方向，生成图片对比滑块组件的HTML结构
   function stackImages(imgs, d) {
-    console.log("🚀 ~ stackImages ~ stackImages执行了")
-    console.log("🚀 ~ stackImages ~ imgs:", imgs)
     if(window.imgIndex1 == undefined){
       window.imgIndex1 = 0;
       window.imgIndex2 = 1;
@@ -548,17 +521,14 @@
     var left = ["<img slot='first' src='", imgs[window.imgIndex1], "'/>"].join('');
     var right = ["<img slot='second' src='", imgs[window.imgIndex2], "'/>"].join('');
 
-    // 剩余图片的容器
-    var otherImgContaier = "";
-    console.log("🚀 ~ stackImages ~ imgs.length:", imgs.length)
+    // 图片全集容器
+    var allImgContaier = "";
     if (imgs.length > 2) {
-      console.log("🚀 ~ stackImages ~ imgs:", imgs)
-      var otherImgHTMLText = "";
+      var allImgHTMLText = "";
       imgs.forEach(img => {
-        otherImgHTMLText = otherImgHTMLText + ["<img src='", img, "'/>"].join('');
+        allImgHTMLText = allImgHTMLText + ["<img src='", img, "'/>"].join('');
       });
-      otherImgContaier = ["<div slot='all-imgs' class='all-imgs-container' style='display: none;'>", otherImgHTMLText, "</div>"].join('');
-      console.log("🚀 ~ stackImages ~ otherImgContaier:", otherImgContaier)
+      allImgContaier = ["<div slot='all-imgs' class='all-imgs-container' style='display: none;'>", allImgHTMLText, "</div>"].join('');
     }
     var direction = d;
     if (settings.handle_arrow_style == "solid") {
@@ -567,14 +537,13 @@
     return ["<img-comparison-slider class = 'colored-slider' direction = '", direction, "'>",
       left,
       right,
-      otherImgContaier,
+      allImgContaier,
       "</img-comparison-slider>"].join('')
   }
 
 
   function componentPrep(cooked) {
     cooked.querySelectorAll('div[data-image-comparison-slider]').forEach(slider => {
-      console.log("🚀 ~ cooked.querySelectorAll ~ slider:", slider)
       let imgs = extractImages(slider);
       let finalHTML = stackImages(imgs, settings.default_direction);
       slider.innerHTML = finalHTML;

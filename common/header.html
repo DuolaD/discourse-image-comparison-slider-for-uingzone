@@ -467,9 +467,8 @@
     console.log("🚀 ~ stackImages ~ imgs.length:", imgs.length)
     if (imgs.length > 2) {
       console.log("🚀 ~ stackImages ~ imgs:", imgs)
-      var otherImg = imgs.slice(2);
       var otherImgHTMLText = "";
-      otherImg.forEach(img => {
+      imgs.forEach(img => {
         otherImgHTMLText = otherImgHTMLText + ["<img src='", img, "'/>"].join('');
       });
       otherImgContaier = ["<div slot='all-imgs' class='all-imgs-container' style='display: none;'>", otherImgHTMLText, "</div>"].join('');

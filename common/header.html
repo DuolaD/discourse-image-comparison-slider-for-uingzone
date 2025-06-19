@@ -474,7 +474,7 @@
   window.changeImageIndex = function () {
     // 索引验证通过，更新全局变量
     console.log("🚀 ~ changeImageIndex ~ allImgLength:", allImgLength)
-    if (window.imgIndex2 >= allImgLength) {
+    if (window.imgIndex2 >= allImgLength - 1) {
       window.imgIndex1 = 0;
       window.imgIndex2 = 1;
     } else {

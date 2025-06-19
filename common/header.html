@@ -75,7 +75,7 @@
         },
         // 创建组件模板
         o = document.createElement("template");
-      o.innerHTML = '<div class="second" id="second"> <slot name="second"><slot name="before"></slot></slot> </div> <div class="first" id="first"> <div class="first-overlay"> <div class="first-overlay-container" id="firstImageContainer"> <slot name="first"><slot name="after"></slot></slot> </div> </div> <div class="handle-container"> <div class="divider"></div> <div class="handle" id="handle"> <slot name="handle"> <svg xmlns="http://www.w3.org/2000/svg" class="default-handle" viewBox="-8 -3 16 6"> <path d="M -5 -2 L -7 0 L -5 2 M 5 -2 L 7 0 L 5 2" fill="none" vector-effect="non-scaling-stroke"/> </svg> </slot> </div> </div> </div> ';
+      o.innerHTML = '<div class="second" id="second"> <slot name="second"><slot name="before"></slot></slot> </div> <div class="first" id="first"> <div class="first-overlay"> <div class="first-overlay-container" id="firstImageContainer"> <slot name="first"><slot name="after"></slot></slot> </div> </div> <div class="handle-container"> <div class="divider"></div> <div class="handle" id="handle"> <slot name="handle"> <svg xmlns="http://www.w3.org/2000/svg" class="default-handle" viewBox="-8 -3 16 6"> <path d="M -5 -2 L -7 0 L -5 2 M 5 -2 L 7 0 L 5 2" fill="none" vector-effect="non-scaling-stroke"/> </svg> </slot> </div> </div> </div>  <div class="all-imgs" id="all-imgs" style="display: none;"><slot name="all-imgs"></slot></div>';
       // 键盘控制常量
       const n = {
         ArrowLeft: -1,
@@ -221,6 +221,7 @@
           this.firstElement = e.getElementById("first");
           this.secondElement = e.getElementById("second");
           this.handleElement = e.getElementById("handle")
+          this.allImgsElement = e.getElementById("all-imgs")
         }
 
         // 获取和设置属性
@@ -471,7 +472,7 @@
       otherImg.forEach(img => {
         otherImgHTMLText = otherImgHTMLText + ["<img src='", img, "'/>"].join('');
       });
-      otherImgContaier = ["<div class='all-imgs-container' style='display: none;'>", otherImgHTMLText, "</div>"].join('');
+      otherImgContaier = ["<div slot='all-imgs' class='all-imgs-container' style='display: none;'>", otherImgHTMLText, "</div>"].join('');
       console.log("🚀 ~ stackImages ~ otherImgContaier:", otherImgContaier)
     }
     var direction = d;

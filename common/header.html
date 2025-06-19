@@ -347,6 +347,8 @@
 
           // 组件断开连接回调
           disconnectedCallback() {
+            window.imgIndex1 = 0;
+            window.imgIndex2 = 1;
             this.transitionTimer && window.clearTimeout(this.transitionTimer);
           }
 
@@ -473,7 +475,6 @@
   // 将函数定义在window对象上，使其全局可访问
   window.changeImageIndex = function () {
     // 索引验证通过，更新全局变量
-    console.log("🚀 ~ changeImageIndex ~ allImgLength:", allImgLength)
     if (window.imgIndex2 >= allImgLength - 1) {
       window.imgIndex1 = 0;
       window.imgIndex2 = 1;
@@ -502,7 +503,6 @@
       return ["No image found", "No image found"]
     }
     allImgLength = [...imgs].length;
-    console.log("🚀 ~ extractImages ~ allImgLength:", allImgLength)
     if (length > 0) {
       let imgsSrcList = []
       imgs.forEach(i => {

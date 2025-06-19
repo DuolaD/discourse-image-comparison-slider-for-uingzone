@@ -491,6 +491,7 @@
 
   // 提取页面中的图片地址，返回图片src数组
   function extractImages(html) {
+    let imgs = []
     if (html.querySelector(".all-imgs-container")) {
       imgs = html.querySelectorAll(".all-imgs-container img");
     } else {
